@@ -9,7 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/deepseek": "^1.0.25",
+    "@ai-sdk/react": "^2.0.82",
     "@radix-ui/react-slot": "^1.2.3",
+    "ai": "^5.0.82",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.548.0",
