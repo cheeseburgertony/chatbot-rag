@@ -7,3 +7,5 @@ export const fileTable = pgTable("files", {
   file_key: varchar("file_key").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export type FileModel = typeof fileTable.$inferInsert;

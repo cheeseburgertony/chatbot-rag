@@ -4,6 +4,7 @@ import { CharacterTextSplitter } from "@langchain/textsplitters";
 import { Document } from "@langchain/core/documents";
 import { pc } from "@/lib/pinecone";
 import { Md5 } from "ts-md5";
+import { insertFile } from "@/db";
 
 export async function POST(req: Request) {
   try {
@@ -28,6 +29,9 @@ export async function POST(req: Request) {
 
     // 3.上传向量数据库
     await Promise.all(splitDocs.map(embedChunks));
+
+    // 4.存储文件信息到数据库
+    await insertFile(file.name, Md5.hashStr(file.name));
 
     return NextResponse.json({ message: "File uploaded successfully" });
   } catch (error) {
