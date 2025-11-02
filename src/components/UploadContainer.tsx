@@ -33,6 +33,15 @@ const UploadContainer = () => {
     },
   });
 
+  const { mutate: deleteFile } = useMutation({
+    mutationFn: (fileId: number) => {
+      return axios.delete(`/api/delete-file/${fileId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["files"] });
+    },
+  });
+
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       // Do something with the files
@@ -102,8 +111,11 @@ const UploadContainer = () => {
                 </div>
 
                 {/* 删除按钮 */}
-                {/* <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors">
+                <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                    onClick={() => deleteFile(file.id!)}
+                  >
                     <svg
                       className="w-5 h-5"
                       fill="none"
@@ -118,7 +130,7 @@ const UploadContainer = () => {
                       />
                     </svg>
                   </button>
-                </div> */}
+                </div>
               </div>
             ))}
           </div>

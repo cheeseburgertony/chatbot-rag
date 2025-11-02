@@ -28,10 +28,10 @@ export async function POST(req: Request) {
     const splitDocs = await Promise.all(docs.map((doc) => splitDoc(doc)));
 
     // 3.上传向量数据库
-    await Promise.all(splitDocs.map(embedChunks));
+    const recordsIds = await Promise.all(splitDocs.map(embedChunks));
 
     // 4.存储文件信息到数据库
-    await insertFile(file.name, Md5.hashStr(file.name));
+    await insertFile(file.name, Md5.hashStr(file.name), recordsIds.flat());
 
     return NextResponse.json({ message: "File uploaded successfully" });
   } catch (error) {
@@ -99,8 +99,9 @@ const embedChunks = async (chunks: string[]) => {
     text: c,
   }));
 
-  return await pc
-    .index(indexName)
-    .namespace("__default__")
-    .upsertRecords(records);
+  const recordsIds = records.map((r) => r._id);
+
+  await pc.index(indexName).namespace("__default__").upsertRecords(records);
+
+  return recordsIds;
 };
