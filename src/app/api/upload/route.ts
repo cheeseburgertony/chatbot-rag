@@ -50,7 +50,7 @@ const splitDoc = async (doc: Document) => {
 };
 
 const embedChunks = async (chunks: string[]) => {
-  /** 
+  /**
   // 手动使用 Pinecone SDK 进行嵌入和上传
   const model = "multilingual-e5-large";
 
@@ -60,12 +60,15 @@ const embedChunks = async (chunks: string[]) => {
   });
 
   const records = chunks.map((c, i) => ({
-      id: Md5.hashStr(c),
-      values: embeddings.data[i].vectorType === "dense" && embeddings.data[i].values,
-      metadata: { text: c },
+    id: Md5.hashStr(c),
+    values:
+      embeddings.data[i].vectorType === "dense"
+        ? embeddings.data[i].values
+        : [],
+    metadata: { text: c },
   }));
 
-  return await pc.index('chatbot-rag').upsert(records);
+  return await pc.index("chatbot-rag").upsert(records);
 */
 
   // 使用 Pinecone 的 createIndexForModel 方法创建索引，自动处理向量嵌入
