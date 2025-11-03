@@ -50,7 +50,18 @@ const UploadContainer = () => {
     },
     [mutate]
   );
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
+      "application/msword": [".doc"],
+      "text/markdown": [".md"],
+      "text/plain": [".txt"],
+    },
+    maxFiles: 1,
+  });
 
   return (
     <div className="h-full w-full flex flex-col items-center">
