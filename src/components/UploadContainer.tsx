@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 const UploadContainer = () => {
   const queryClient = useQueryClient();
@@ -148,11 +149,18 @@ const UploadContainer = () => {
                 </div>
 
                 {/* 文件信息 */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {file.file_name}
-                  </p>
-                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {file.file_name}
+                      </p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{file.file_name}</p>
+                  </TooltipContent>
+                </Tooltip>
 
                 {/* 删除按钮 */}
                 <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
