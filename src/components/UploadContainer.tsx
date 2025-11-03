@@ -4,11 +4,25 @@ import { FileModel } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
+import { toast } from "sonner";
 
 const UploadContainer = () => {
   const queryClient = useQueryClient();
+  const [deletingFileId, setDeletingFileId] = useState<number | null>(null);
+  const [openDialogId, setOpenDialogId] = useState<number | null>(null);
 
   const { data: files, isLoading } = useQuery({
     queryKey: ["files"],
@@ -30,17 +44,36 @@ const UploadContainer = () => {
     onSuccess: () => {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["files"] });
+      toast.success("文件上传成功");
+    },
+    onError: (error) => {
+      console.error("上传失败:", error);
+      toast.error("文件上传失败，请重试");
     },
   });
 
-  const { mutate: deleteFile } = useMutation({
+  const { mutate: deleteFile, isPending: isDeleting } = useMutation({
     mutationFn: (fileId: number) => {
+      setDeletingFileId(fileId);
       return axios.delete(`/api/delete-file/${fileId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["files"] });
+      setDeletingFileId(null);
+      setOpenDialogId(null);
+      toast.success("文件删除成功");
+    },
+    onError: (error) => {
+      setDeletingFileId(null);
+      console.error("删除失败:", error);
+      toast.error("文件删除失败，请重试");
     },
   });
+
+  const handleDelete = (e: React.MouseEvent, fileId: number) => {
+    e.preventDefault();
+    deleteFile(fileId);
+  };
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -123,24 +156,69 @@ const UploadContainer = () => {
 
                 {/* 删除按钮 */}
                 <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
-                    onClick={() => deleteFile(file.id!)}
+                  <AlertDialog
+                    open={openDialogId === file.id}
+                    onOpenChange={(open) => {
+                      setOpenDialogId(open ? file.id! : null);
+                    }}
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={deletingFileId === file.id}
+                      >
+                        {deletingFileId === file.id ? (
+                          <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>确认删除</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          确定要删除&quot;{file.file_name}
+                          &quot;吗？此操作无法撤销。
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel
+                          className="cursor-pointer"
+                          disabled={isDeleting}
+                        >
+                          取消
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          type="button"
+                          className="bg-red-600 text-white hover:bg-red-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={(e) => handleDelete(e, file.id!)}
+                          disabled={isDeleting}
+                        >
+                          {isDeleting ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              <span>删除中...</span>
+                            </div>
+                          ) : (
+                            "继续"
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             ))}
